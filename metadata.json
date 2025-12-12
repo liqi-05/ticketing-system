@@ -1,0 +1,5 @@
+{
+  "name": "FairTix Architecture",
+  "description": "Interactive Engineering Design Document and Simulation for the FairTix high-concurrency ticketing engine.",
+  "requestFramePermissions": []
+}
