@@ -1,0 +1,6 @@
+@FairTix.Api_HostAddress = http://localhost:5089
+
+GET {{FairTix.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
