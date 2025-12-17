@@ -19,3 +19,4 @@ $Query | docker exec -i fairtix-postgres psql -U postgres -d fairtix
 
 
 
+

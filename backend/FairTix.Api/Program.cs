@@ -56,7 +56,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     LogDebug("Program.cs:40", "Creating Redis ConnectionMultiplexer factory", new { host = "localhost", port = 6379 }, "A");
     // #endregion agent log
     
-    var configuration = ConfigurationOptions.Parse("localhost:6379");
+    // Use configuration for Redis connection string
+    var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    var configuration = ConfigurationOptions.Parse(redisConnectionString);
     configuration.ConnectTimeout = 2000; // 2 second timeout - fail fast
     configuration.ConnectRetry = 1;
     configuration.AbortOnConnectFail = false; // Don't throw on connect fail
@@ -186,6 +188,28 @@ app.MapGet("/api/events", async (FairTixDbContext dbContext) =>
 })
 .WithName("GetEvents");
 
+// Get Seats for Event
+app.MapGet("/api/events/{eventId}/seats", async (Guid eventId, FairTixDbContext dbContext) =>
+{
+    var seats = await dbContext.Seats
+        .Where(s => s.EventId == eventId)
+        .OrderBy(s => s.Section)
+        .ThenBy(s => s.RowNumber)
+        .ThenBy(s => s.SeatNumber)
+        .Select(s => new
+        {
+            s.Id,
+            s.Section,
+            s.RowNumber,
+            s.SeatNumber,
+            Status = s.Status.ToString()
+        })
+        .ToListAsync();
+
+    return Results.Ok(seats);
+})
+.WithName("GetSeats");
+
 // Health check endpoint
 app.MapGet("/health", async (IConnectionMultiplexer redis, FairTixDbContext dbContext) =>
 {
@@ -297,10 +321,10 @@ app.MapPost("/api/reservations/reserve", async (
     return result switch
     {
         ReservationResult.Success => Results.Ok(new { message = "Seats reserved successfully" }),
-        ReservationResult.InvalidSeats => Results.BadRequest("Invalid seats"),
-        ReservationResult.AlreadyTaken => Results.Conflict("Seats already taken"),
-        ReservationResult.ConcurrencyConflict => Results.Conflict("Concurrency conflict - seats were reserved by another user"),
-        _ => Results.Problem("Reservation failed", statusCode: 500)
+        ReservationResult.InvalidSeats => Results.Problem(detail: "Invalid seats selected", statusCode: 400),
+        ReservationResult.AlreadyTaken => Results.Problem(detail: "Some of these seats are already taken", statusCode: 409),
+        ReservationResult.ConcurrencyConflict => Results.Problem(detail: "Seats were just reserved by another user", statusCode: 409),
+        _ => Results.Problem(detail: "Reservation failed", statusCode: 500)
     };
 })
 .WithName("ReserveSeats");

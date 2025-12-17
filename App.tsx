@@ -1,4 +1,4 @@
-v6 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EventsList } from './components/EventsList';
 import { QueueStatus } from './components/QueueStatus';
 import { SeatReservation } from './components/SeatReservation';
@@ -22,14 +22,8 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.EVENTS);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
-  const [userId] = useState<string>(() => {
-    // Generate or retrieve user ID (in real app, this would come from auth)
-    const stored = localStorage.getItem('fairtix_userId');
-    if (stored) return stored;
-    const newId = crypto.randomUUID();
-    localStorage.setItem('fairtix_userId', newId);
-    return newId;
-  });
+  // Use the seeded User 1 ID to ensure database constraints are met
+  const [userId] = useState<string>('11111111-1111-1111-1111-111111111111');
   const [isActive, setIsActive] = useState(false);
   const [showArchDropdown, setShowArchDropdown] = useState(false);
 
@@ -164,7 +158,7 @@ const App: React.FC = () => {
                 A high-concurrency concert ticketing engine designed to handle 1,000+ simultaneous requests per seat.
                 Built with C# .NET 9, PostgreSQL, Redis, and Docker.
               </p>
-              
+
               {/* Architecture Sub-Navigation */}
               <div className="flex items-center justify-center gap-2 bg-pastel-cream border-2 border-black rounded-full px-2 py-1 shadow-neo-sm dark:bg-dark-card dark:border-dark-border dark:shadow-none max-w-fit mx-auto">
                 {[
@@ -175,11 +169,10 @@ const App: React.FC = () => {
                   <button
                     key={item.id}
                     onClick={() => setCurrentView(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                      currentView === item.id
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentView === item.id
                         ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
                         : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
-                    }`}
+                      }`}
                   >
                     <item.icon className="w-4 h-4" />
                     {item.label}
@@ -189,7 +182,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <button 
+              <button
                 onClick={() => setCurrentView(View.ARCH_SCHEMA)}
                 className="bg-pastel-cream border-2 border-black shadow-neo p-6 rounded-xl hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all group text-left dark:bg-dark-card dark:border-dark-border dark:shadow-none dark:hover:border-galaxy-purple dark:hover:bg-dark-card/80"
               >
@@ -200,7 +193,7 @@ const App: React.FC = () => {
                 <p className="text-gray-700 dark:text-galaxy-dim text-sm">PostgreSQL Schema & Optimistic Concurrency locking strategies.</p>
               </button>
 
-              <button 
+              <button
                 onClick={() => setCurrentView(View.ARCH_QUEUE)}
                 className="bg-pastel-cream border-2 border-black shadow-neo p-6 rounded-xl hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all group text-left dark:bg-dark-card dark:border-dark-border dark:shadow-none dark:hover:border-galaxy-pink dark:hover:bg-dark-card/80"
               >
@@ -211,18 +204,18 @@ const App: React.FC = () => {
                 <p className="text-gray-700 dark:text-galaxy-dim text-sm">Redis Waiting Room logic and user flow simulation.</p>
               </button>
 
-              <button 
+              <button
                 onClick={() => setCurrentView(View.ARCH_API)}
                 className="bg-pastel-cream border-2 border-black shadow-neo p-6 rounded-xl hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all group text-left dark:bg-dark-card dark:border-dark-border dark:shadow-none dark:hover:border-white dark:hover:bg-dark-card/80"
               >
                 <div className="bg-pastel-green w-fit p-3 rounded-full border-2 border-black mb-4 group-hover:scale-110 transition-transform dark:bg-white/10 dark:border-white dark:p-3">
-                   <FileText className="w-8 h-8 text-black dark:text-white" />
+                  <FileText className="w-8 h-8 text-black dark:text-white" />
                 </div>
                 <h3 className="text-xl font-serif text-black dark:text-white mb-2">API & Security</h3>
                 <p className="text-gray-700 dark:text-galaxy-dim text-sm">REST Endpoints, Anti-Scalping layers, and Load Testing specs.</p>
               </button>
             </div>
-            
+
             <ArchitectChat context="User is on the main dashboard overview of the project." />
           </div>
         );
@@ -258,13 +251,13 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center cursor-pointer" onClick={() => setCurrentView(View.EVENTS)}>
               <div className="mr-3 bg-black text-white p-1 rounded dark:bg-gradient-to-br dark:from-galaxy-pink dark:to-galaxy-purple dark:text-white transition-colors">
-                 <Ticket className="w-6 h-6" />
+                <Ticket className="w-6 h-6" />
               </div>
               <span className="font-serif text-2xl tracking-tight text-black dark:text-white">FairTix</span>
             </div>
-            
+
             <div className="hidden md:flex items-center gap-6">
-               <div className="flex items-baseline space-x-2 bg-pastel-cream border-2 border-black rounded-full px-2 py-1 shadow-neo-sm dark:bg-dark-card dark:border-dark-border dark:shadow-none transition-all">
+              <div className="flex items-baseline space-x-2 bg-pastel-cream border-2 border-black rounded-full px-2 py-1 shadow-neo-sm dark:bg-dark-card dark:border-dark-border dark:shadow-none transition-all">
                 {[
                   { id: View.EVENTS, label: 'Events', icon: LayoutDashboard },
                   { id: View.RESERVE, label: 'Reserve', icon: ShoppingCart },
@@ -273,35 +266,33 @@ const App: React.FC = () => {
                   <button
                     key={item.id}
                     onClick={() => setCurrentView(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                      currentView === item.id
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentView === item.id
                         ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
                         : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
-                    }`}
+                      }`}
                   >
                     <item.icon className="w-4 h-4" />
                     {item.label}
                   </button>
                 ))}
-                
+
                 {/* Architecture Dropdown */}
-                <div 
+                <div
                   className="relative"
                   onMouseEnter={() => setShowArchDropdown(true)}
                   onMouseLeave={() => setShowArchDropdown(false)}
                 >
                   <button
                     onClick={() => setCurrentView(View.ARCHITECTURE)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                      currentView === View.ARCHITECTURE || currentView === View.ARCH_SCHEMA || currentView === View.ARCH_QUEUE || currentView === View.ARCH_API
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentView === View.ARCHITECTURE || currentView === View.ARCH_SCHEMA || currentView === View.ARCH_QUEUE || currentView === View.ARCH_API
                         ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
                         : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
-                    }`}
+                      }`}
                   >
                     <FileText className="w-4 h-4" />
                     Architecture
                   </button>
-                  
+
                   {/* Dropdown Menu */}
                   {showArchDropdown && (
                     <div className="absolute top-full left-0 mt-2 bg-white border-2 border-black shadow-neo rounded-xl py-2 min-w-[200px] dark:bg-dark-card dark:border-dark-border dark:shadow-none z-50">
@@ -350,9 +341,9 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-               <a 
-                href="https://github.com/liqi-05/ticketing-system" 
-                target="_blank" 
+              <a
+                href="https://github.com/liqi-05/ticketing-system"
+                target="_blank"
                 rel="noreferrer"
                 title="View C# Backend Code"
                 className="p-2 rounded-full border-2 border-black bg-white shadow-neo-sm hover:translate-y-0.5 hover:translate-x-0.5 hover:shadow-none transition-all dark:bg-dark-card dark:border-galaxy-pink dark:shadow-none dark:text-galaxy-pink dark:hover:bg-dark-card/80"
@@ -361,7 +352,7 @@ const App: React.FC = () => {
               </a>
 
               {/* Dark Mode Toggle */}
-              <button 
+              <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 rounded-full border-2 border-black bg-white shadow-neo-sm hover:translate-y-0.5 hover:translate-x-0.5 hover:shadow-none transition-all dark:bg-dark-card dark:border-galaxy-purple dark:shadow-none dark:text-galaxy-purple dark:hover:bg-dark-card/80"
                 aria-label="Toggle Dark Mode"
@@ -377,7 +368,7 @@ const App: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderContent()}
       </main>
-      
+
       <footer className="border-t-2 border-black dark:border-dark-border mt-12 py-8 text-center text-gray-700 dark:text-galaxy-dim text-sm font-medium">
         <p>FairTix Ticketing System • Built with .NET 9, PostgreSQL, Redis</p>
       </footer>

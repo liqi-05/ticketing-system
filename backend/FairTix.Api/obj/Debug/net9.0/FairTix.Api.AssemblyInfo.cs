@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FairTix.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a351fccb853207d3258c8fd92e047d0ce7f5c6d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+55227ed4acc29c4feb247ab6b8ad442eaa5b1a23")]
 [assembly: System.Reflection.AssemblyProductAttribute("FairTix.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FairTix.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

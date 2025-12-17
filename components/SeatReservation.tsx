@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Ticket, ShoppingCart } from 'lucide-react';
 
 interface SeatReservationProps {
@@ -7,23 +7,57 @@ interface SeatReservationProps {
   isActive: boolean;
 }
 
+interface Seat {
+  id: number;
+  section: string;
+  rowNumber: string;
+  seatNumber: string;
+  status: 'Available' | 'Reserved' | 'Sold';
+}
+
 export const SeatReservation: React.FC<SeatReservationProps> = ({ eventId, userId, isActive }) => {
+  const [seats, setSeats] = useState<Seat[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [reserving, setReserving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // Sample seat grid (in real app, fetch from API)
-  const sections = ['A', 'B', 'C'];
-  const rows = Array.from({ length: 10 }, (_, i) => i + 1);
-  const seatsPerRow = 20;
-
-  const toggleSeat = (seatId: number) => {
-    if (!isActive) {
-      setMessage('You must be in the active session to select seats');
-      return;
+  useEffect(() => {
+    if (eventId && isActive) {
+      fetchSeats();
     }
+  }, [eventId, isActive]);
+
+  const fetchSeats = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/events/${eventId}/seats`);
+      if (response.ok) {
+        const data: Seat[] = await response.json();
+        // Sort seats numerically by Row then Seat Number
+        data.sort((a, b) => {
+          const rowA = parseInt(a.rowNumber) || 0;
+          const rowB = parseInt(b.rowNumber) || 0;
+          if (rowA !== rowB) return rowA - rowB;
+
+          const seatA = parseInt(a.seatNumber) || 0;
+          const seatB = parseInt(b.seatNumber) || 0;
+          return seatA - seatB;
+        });
+        setSeats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching seats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSeat = (seat: Seat) => {
+    if (seat.status !== 'Available') return;
+
     setSelectedSeats(prev =>
-      prev.includes(seatId) ? prev.filter(id => id !== seatId) : [...prev, seatId]
+      prev.includes(seat.id) ? prev.filter(id => id !== seat.id) : [...prev, seat.id]
     );
     setMessage(null);
   };
@@ -50,8 +84,9 @@ export const SeatReservation: React.FC<SeatReservationProps> = ({ eventId, userI
 
       const data = await response.json();
       if (response.ok) {
-        setMessage('Seats reserved successfully!');
+        setMessage('Seats reserved successfully! Refreshing view...');
         setSelectedSeats([]);
+        await fetchSeats(); // Refresh to show new status
       } else {
         setMessage(data.detail || 'Failed to reserve seats');
       }
@@ -61,6 +96,14 @@ export const SeatReservation: React.FC<SeatReservationProps> = ({ eventId, userI
       setReserving(false);
     }
   };
+
+  // Group seats by section and row for rendering
+  const seatsBySection = seats.reduce((acc, seat) => {
+    if (!acc[seat.section]) acc[seat.section] = {};
+    if (!acc[seat.section][seat.rowNumber]) acc[seat.section][seat.rowNumber] = [];
+    acc[seat.section][seat.rowNumber].push(seat);
+    return acc;
+  }, {} as Record<string, Record<string, Seat[]>>);
 
   if (!isActive) {
     return (
@@ -72,47 +115,61 @@ export const SeatReservation: React.FC<SeatReservationProps> = ({ eventId, userI
     );
   }
 
+  if (loading && seats.length === 0) {
+    return <div className="p-8 text-center text-gray-500">Loading seat map...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white border-2 border-black shadow-neo p-6 rounded-xl dark:bg-dark-card dark:border-dark-border dark:shadow-none">
-        <h3 className="text-2xl font-serif font-bold text-black dark:text-white mb-4 flex items-center gap-2">
-          <Ticket className="w-6 h-6" />
-          Select Seats
-        </h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-serif font-bold text-black dark:text-white flex items-center gap-2">
+            <Ticket className="w-6 h-6" />
+            Select Seats
+          </h3>
+          <div className="flex gap-4 text-sm font-medium">
+            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-gray-200 border-2 border-gray-400 rounded"></span> Available</div>
+            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-galaxy-pink border-2 border-galaxy-pink rounded"></span> Selected</div>
+            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-gray-400 opacity-50 rounded"></span> Taken</div>
+          </div>
+        </div>
 
         {message && (
-          <div className={`mb-4 p-3 rounded-lg ${
-            message.includes('success') 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-          }`}>
+          <div className={`mb-4 p-3 rounded-lg ${message.includes('success')
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            }`}>
             {message}
           </div>
         )}
 
-        <div className="space-y-6">
-          {sections.map(section => (
-            <div key={section}>
-              <h4 className="font-bold text-lg mb-3 text-black dark:text-white">Section {section}</h4>
+        <div className="space-y-8 overflow-x-auto pb-4">
+          {Object.entries(seatsBySection).map(([section, rows]) => (
+            <div key={section} className="min-w-[600px]">
+              <h4 className="font-bold text-xl mb-4 bg-gray-100 dark:bg-white/10 p-2 rounded text-black dark:text-white">Section {section}</h4>
               <div className="space-y-2">
-                {rows.map(row => (
-                  <div key={row} className="flex items-center gap-2">
-                    <span className="w-12 text-sm font-bold text-gray-600 dark:text-galaxy-dim">Row {row}</span>
+                {Object.entries(rows).map(([rowNum, rowSeats]) => (
+                  <div key={rowNum} className="flex items-center gap-4">
+                    <span className="w-12 text-sm font-bold text-gray-600 dark:text-galaxy-dim shrink-0">Row {rowNum}</span>
                     <div className="flex gap-1 flex-wrap">
-                      {Array.from({ length: seatsPerRow }, (_, i) => {
-                        const seatId = parseInt(`${section}${row}${i + 1}`);
-                        const isSelected = selectedSeats.includes(seatId);
+                      {rowSeats.map(seat => {
+                        const isSelected = selectedSeats.includes(seat.id);
+                        const isAvailable = seat.status === 'Available';
+
                         return (
                           <button
-                            key={seatId}
-                            onClick={() => toggleSeat(seatId)}
-                            className={`w-8 h-8 text-xs font-bold border-2 transition-all ${
-                              isSelected
-                                ? 'bg-galaxy-pink border-galaxy-pink text-white'
-                                : 'bg-gray-200 border-gray-400 hover:bg-gray-300 dark:bg-dark-card dark:border-dark-border dark:hover:bg-dark-card/80'
-                            }`}
+                            key={seat.id}
+                            onClick={() => toggleSeat(seat)}
+                            disabled={!isAvailable}
+                            title={`Seat ${seat.seatNumber} (${seat.status})`}
+                            className={`w-8 h-8 text-xs font-bold border-2 transition-all rounded ${!isAvailable
+                              ? 'bg-gray-400 border-gray-400 opacity-30 cursor-not-allowed text-white'
+                              : isSelected
+                                ? 'bg-galaxy-pink border-galaxy-pink text-white scale-110 shadow-sm'
+                                : 'bg-white border-gray-300 hover:border-black hover:bg-gray-50 dark:bg-dark-card dark:border-gray-600 dark:hover:border-white'
+                              }`}
                           >
-                            {i + 1}
+                            {seat.seatNumber}
                           </button>
                         );
                       })}
@@ -125,23 +182,23 @@ export const SeatReservation: React.FC<SeatReservationProps> = ({ eventId, userI
         </div>
 
         {selectedSeats.length > 0 && (
-          <div className="mt-6 pt-6 border-t-2 border-black dark:border-dark-border">
+          <div className="mt-6 pt-6 border-t-2 border-black dark:border-dark-border sticky bottom-0 bg-white dark:bg-dark-card p-4 shadow-lg rounded-xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-bold text-black dark:text-white">
+                <p className="font-bold text-black dark:text-white text-lg">
                   {selectedSeats.length} seat{selectedSeats.length !== 1 ? 's' : ''} selected
                 </p>
-                <p className="text-sm text-gray-600 dark:text-galaxy-dim">
-                  Total: ${selectedSeats.length * 50}.00
+                <p className="text-gray-600 dark:text-galaxy-dim">
+                  Total: ${(selectedSeats.length * 50).toFixed(2)}
                 </p>
               </div>
               <button
                 onClick={reserveSeats}
                 disabled={reserving}
-                className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full font-bold border-2 border-black shadow-neo hover:translate-y-1 hover:shadow-none transition-all dark:bg-galaxy-pink dark:border-none dark:shadow-[0_0_20px_rgba(255,126,182,0.4)] disabled:opacity-50"
+                className="flex items-center gap-2 bg-black text-white px-8 py-3 rounded-full font-bold border-2 border-black hover:scale-105 transition-all dark:bg-galaxy-pink dark:border-none shadow-neo dark:shadow-[0_0_20px_rgba(255,126,182,0.4)] disabled:opacity-70 disabled:hover:scale-100"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {reserving ? 'Reserving...' : 'Reserve Seats'}
+                {reserving ? 'Processing...' : 'Reserve Selected'}
               </button>
             </div>
           </div>
@@ -150,6 +207,7 @@ export const SeatReservation: React.FC<SeatReservationProps> = ({ eventId, userI
     </div>
   );
 };
+
 
 
 

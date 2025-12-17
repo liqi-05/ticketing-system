@@ -46,7 +46,7 @@ CREATE TABLE "Seats" (
     "Section" VARCHAR(50) NOT NULL,
     "RowNumber" VARCHAR(10) NOT NULL,
     "SeatNumber" VARCHAR(10) NOT NULL,
-    "Status" seat_status NOT NULL DEFAULT 'Available',
+    "Status" VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK ("Status" IN ('Available', 'Reserved', 'Sold')),
     "UserId" UUID,
     "ReservedAt" TIMESTAMPTZ,
     "Version" INTEGER NOT NULL DEFAULT 0,
