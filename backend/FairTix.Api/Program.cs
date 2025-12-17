@@ -248,6 +248,27 @@ app.MapGet("/health", async (IConnectionMultiplexer redis, FairTixDbContext dbCo
 })
 .WithName("HealthCheck");
 
+// Auth Endpoint for Demo
+app.MapPost("/api/auth/login", async (FairTixDbContext dbContext) =>
+{
+    var userId = Guid.NewGuid();
+    var email = $"user_{userId:N}@example.com";
+    
+    var user = new User
+    {
+        Id = userId,
+        Email = email,
+        PasswordHash = "demo_hash",
+        CreatedAt = DateTime.UtcNow
+    };
+
+    dbContext.Users.Add(user);
+    await dbContext.SaveChangesAsync();
+
+    return Results.Ok(new { userId, email });
+})
+.WithName("Login");
+
 // Ticket Reservation Endpoints
 app.MapPost("/api/events/{eventId}/queue/join", async (
     Guid eventId,

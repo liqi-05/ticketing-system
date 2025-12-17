@@ -22,8 +22,27 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.EVENTS);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
-  // Use the seeded User 1 ID to ensure database constraints are met
-  const [userId] = useState<string>('11111111-1111-1111-1111-111111111111');
+  // Multi-user support: Generate a unique user for this session
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    // Register a new temporary user for this session
+    const registerUser = async () => {
+      try {
+        const response = await fetch('/api/auth/login', { method: 'POST' });
+        if (response.ok) {
+          const data = await response.json();
+          setUserId(data.userId);
+          console.log('Registered temporary user:', data.userId);
+        }
+      } catch (error) {
+        console.error('Failed to register user:', error);
+        // Fallback to seeded user if auth fails
+        setUserId('11111111-1111-1111-1111-111111111111');
+      }
+    };
+    registerUser();
+  }, []);
   const [isActive, setIsActive] = useState(false);
   const [showArchDropdown, setShowArchDropdown] = useState(false);
 
@@ -170,8 +189,8 @@ const App: React.FC = () => {
                     key={item.id}
                     onClick={() => setCurrentView(item.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentView === item.id
-                        ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
-                        : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
+                      ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
+                      : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
                       }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -267,8 +286,8 @@ const App: React.FC = () => {
                     key={item.id}
                     onClick={() => setCurrentView(item.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentView === item.id
-                        ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
-                        : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
+                      ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
+                      : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
                       }`}
                   >
                     <item.icon className="w-4 h-4" />
@@ -285,8 +304,8 @@ const App: React.FC = () => {
                   <button
                     onClick={() => setCurrentView(View.ARCHITECTURE)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentView === View.ARCHITECTURE || currentView === View.ARCH_SCHEMA || currentView === View.ARCH_QUEUE || currentView === View.ARCH_API
-                        ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
-                        : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
+                      ? 'bg-black text-white dark:bg-galaxy-pink dark:text-white dark:border-none'
+                      : 'text-gray-700 hover:bg-black/10 dark:text-galaxy-dim dark:hover:text-white dark:hover:bg-white/5'
                       }`}
                   >
                     <FileText className="w-4 h-4" />
