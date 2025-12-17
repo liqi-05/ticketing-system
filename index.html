@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FairTix - Engineering Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              serif: ['"DM Serif Display"', 'serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              brand: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                900: '#0c4a6e',
+              },
+              // Dark mode specific palette (Navy/Pink/Purple)
+              dark: {
+                bg: '#0F1123',      // Deepest Navy
+                card: '#1E2142',    // Card Navy
+                border: '#464B85',  // Purple-ish border
+              },
+              // Galaxy accents for Dark Mode
+              galaxy: {
+                pink: '#FF7EB6',    // Vibrant Pink
+                purple: '#BD93F9',  // Soft Purple
+                text: '#E2E4F5',    // White-ish with blue tint
+                dim: '#8B90B8'      // Dimmed text
+              },
+              // Light mode / Neo-Brutalist palette
+              pastel: {
+                pink: '#f3d2e6',     // Main background
+                cream: '#fff8ec',    // Card backgrounds
+                yellow: '#fde047',   // Accents
+                blue: '#bfdbfe',     // Accents
+                green: '#bbf7d0',    // Accents
+                lavender: '#e9d5ff'  // Accents
+              },
+              neo: {
+                black: '#1f1f1f',
+              }
+            },
+            boxShadow: {
+              'neo': '4px 4px 0px 0px rgba(0,0,0,1)',
+              'neo-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+              'neo-lg': '6px 6px 0px 0px rgba(0,0,0,1)',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        /* Default to light mode styling baseline */
+        background-color: #f3d2e6;
+        color: #1f1f1f;
+        transition: background-color 0.3s ease;
+      }
+      /* Dark mode override */
+      .dark body {
+        background-color: #0F1123;
+        color: #E2E4F5;
+      }
+      /* Custom scrollbar for code blocks */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05); 
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #1E2142;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #000; 
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #464B85;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #FF7EB6; 
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
