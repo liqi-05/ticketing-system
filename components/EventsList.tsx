@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, Ticket, ArrowRight } from 'lucide-react';
+import { Users, Clock, Ticket, ArrowRight } from 'lucide-react';
 
 interface Event {
   id: string;
@@ -59,7 +59,7 @@ export const EventsList: React.FC<EventsListProps> = ({ onSelectEvent }) => {
         setLoading(false);
       }
     };
-    
+
     fetchEvents();
   }, []);
 
